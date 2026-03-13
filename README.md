@@ -8,7 +8,7 @@ Decoys, Spies, most of the leader's abilities and medics respawning medics respa
 #### Known issues:
 ###### feel free to report any bugs or make suggestions.
 <ul>
-  <li>Various Leader abilities Desync inssues</li>
+  <li>Various Leader abilities Desync issues</li>
 </ul>  
 
 ## How to play multiplayer
