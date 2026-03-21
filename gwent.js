@@ -1475,6 +1475,7 @@ class Game {
 // Contains information and behavior of a Card
 class Card {
   constructor(card_data, player) {
+    this.instanceId = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
     this.name = card_data.name;
     this.basePower = this.power = Number(card_data.strength);
     this.faction = card_data.deck;
