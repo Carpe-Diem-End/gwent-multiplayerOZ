@@ -2282,12 +2282,12 @@ class Carousel {
     } else if (actionString.includes("board.toGrave")) {
       setTimeout(() => {
         socket.send(
-          JSON.stringify({ type: "removeCardHand", index: this.index }),
+          JSON.stringify({ type: "removeCardHand", instanceId: resp.instanceId }),
         );
       }, 1000);
     } else if (actionString.includes("board.toHand")) {
       setTimeout(() => {
-        socket.send(JSON.stringify({ type: "addCardHand", index: this.index }));
+        socket.send(JSON.stringify({ type: "addCardHand", instanceId: resp.instanceId }));
       }, 1000);
     }
     if (this.isLastSelection() && !this.cancelled) return this.exit();
