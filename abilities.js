@@ -138,7 +138,7 @@ var ability_dict = {
 					const handleMessage = async (event) => {
 						const data = JSON.parse(event.data);
 						if (data.type === "medicDraw") {
-							const drawnCard = grave.cards.filter(c => c.filename === data.card)[0]
+							const drawnCard = grave.cards.find(c => c.isUnit() && c.instanceId === data.instanceId)
 							if (drawnCard) {
 								resolve(drawnCard);
 								return;
@@ -274,7 +274,7 @@ var ability_dict = {
 						const data = JSON.parse(event.data);
 
 						if (data.type === "addCardHand") {
-							const drawnCard = grave.cards.filter(c => c.isUnit())[data.index]
+							const drawnCard = grave.cards.find(c => c.isUnit() && c.instanceId === data.instanceId)
 							if (drawnCard) {
 								drawnCard.holder = player_op;
 								resolve(drawnCard);
@@ -351,12 +351,12 @@ var ability_dict = {
 					const handleMessage = async (event) => {
 						const data = JSON.parse(event.data);
 						if (data.type === "removeCardHand") {
-							const card = hand.cards[data.index];
+							const card = hand.cards.find( c => c.instanceId === data.instanceId);
 							hand.removeCard(card);
 							flag+=1;
 						}
 						if (data.type === "addCardHand") {
-							const drawnCard = player_op.deck.cards[data.index];
+							const drawnCard = player_op.deck.cards.find(c => c.instanceId === data.instanceId);
 							hand.addCard(drawnCard);
 							flag+=1;
 						}
