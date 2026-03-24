@@ -1704,6 +1704,9 @@ class Card {
 // Handles notifications and client interration with menus
 class UI {
   constructor() {
+    this.notificationQueue = [];
+    this.isNotifying = false;
+    this.currentNotification = null;
     this.carousels = [];
     this.notif_elem = document.getElementById("notification-bar");
     this.preview = document.getElementsByClassName("card-preview")[0];
@@ -1925,11 +1928,39 @@ class UI {
     }
   }
 
-  // Displayed a timed notification to the client
+  // add notification to queue and run it
   async notification(name, duration) {
-    if (!duration) duration = 1200;
+    return new Promise((resolve) => {
+      this.notificationQueue.push({ name, duration, resolve });
+      this.processNotificationQueue();
+    });
+  }
 
+  async processNotificationQueue() {
+    if (this.isNotifying || this.notificationQueue.length === 0) return;
+
+    this.isNotifying = true;
+    const { name, duration, resolve } = this.notificationQueue.shift();
+
+    try {
+      await this.showNotification(name, duration);
+      resolve();
+    } catch (error) {
+      console.error("Notification error:", error);
+      resolve(); // does not stop in case of error
+    }
+
+    this.isNotifying = false;
+    this.processNotificationQueue();
+  }
+
+  async showNotification(name, duration) {
+    // Clear previous notification, if any
+    await this.clearCurrentNotification();
+
+    if (!duration) duration = 1200;
     duration = Math.max(800, duration);
+
     var guia2 = {
       "me-pass": "pass",
       "win-round": "round_win",
@@ -1942,6 +1973,7 @@ class UI {
       "sv-err": "server_error",
       "win-opleft": "oponent_left",
     };
+
     var temSom = new Array();
     for (var x in guia2) temSom[temSom.length] = x;
     var som =
@@ -1953,11 +1985,50 @@ class UI {
     if (som != "") tocar(som, false);
 
     const fadeSpeed = 150;
-    this.notif_elem.children[0].id = "notif-" + name;
+    if (this.notif_elem && this.notif_elem.children[0]) {
+      this.notif_elem.children[0].id = "notif-" + name;
+    }
+
+    // Resets the opacity visual
+    if (this.notif_elem) {
+      this.notif_elem.style.opacity = "0";
+      this.notif_elem.style.display = "flex";
+    }
+
     await fadeIn(this.notif_elem, fadeSpeed);
-    await sleep(duration);
-    await sleep(200);
-    await fadeOut(this.notif_elem, fadeSpeed, duration - fadeSpeed);
+
+    // Store the timeout for cleanup
+    return new Promise((resolve) => {
+      this.currentNotification = {
+        timeout: setTimeout(async () => {
+          await this.fadeOutAndHide(fadeSpeed);
+          this.currentNotification = null;
+          resolve();
+        }, duration),
+      };
+    });
+  }
+
+  async clearCurrentNotification() {
+    if (this.currentNotification) {
+      clearTimeout(this.currentNotification.timeout);
+      await this.fadeOutAndHide(50); // should fade out fast
+      this.currentNotification = null;
+    }
+  }
+
+  async fadeOutAndHide(fadeSpeed) {
+    if (this.notif_elem) {
+      try {
+        await fadeOut(this.notif_elem, fadeSpeed, 0);
+        this.notif_elem.style.display = "none";
+        this.notif_elem.style.opacity = "0";
+      } catch (error) {
+        // force hide in case of error
+        this.notif_elem.style.display = "none";
+        this.notif_elem.style.opacity = "0";
+      }
+    }
   }
 
   // Displays a cancellable Carousel for a single card
