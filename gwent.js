@@ -160,6 +160,14 @@ socket.onmessage = async (event) => {
       await Promise.all(
         graveCards.map((card) => board.toRow(card, player_op.grave)),
       );
+
+    case "monstersAbility":
+      const player = game.players.find(p => p.tag === data.playerTag);
+      const card = player.deck.findCardById(data.cardId);
+      card.noRemove = true;
+      setTimeout(() => {
+        delete card.noRemove;
+      }, 1200);
   }
 };
 

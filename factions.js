@@ -23,18 +23,21 @@ var factions = {
   monsters: {
     name: "Monsters",
     factionAbility: (player) =>
-      game.roundEnd.push(() => {
+      game.roundEnd.push(async () => {
         let units = board.row
           .filter((r, i) => (player === player_me) ^ (i < 3))
           .reduce((a, r) => r.cards.filter((c) => c.isUnit()).concat(a), []);
         if (units.length === 0) return;
         let card = units[randomInt(units.length)];
-        card.noRemove = true;
-        game.roundStart.push(async () => {
-          await ui.notification("monsters", 1200);
-          delete card.noRemove;
-          return true;
-        });
+        const cardId = card.instanceId;
+        
+        // Send sync message to both players
+        socket.send(JSON.stringify({
+          type: "monstersAbility",
+          playerTag: player.tag,
+          cardId: cardId
+        }));
+        
         return false;
       }),
     description: "Keeps a random Unit Card out after each round.",
