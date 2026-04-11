@@ -130,7 +130,13 @@ var ability_dict = {
 				return;
 			let wrapper = {card : null};
 			if (game.randomRespawn) {
-				 wrapper.card = grave.findCardsRandom(c => c.isUnit())[0];
+				 let units = grave.findCards(c => c.isUnit());
+				 units.sort((a, b) => {
+					const powerDiff = b.basePower - a.basePower;
+					if (powerDiff !== 0) return powerDiff;
+					return a.filename.localeCompare(b.filename);
+				 });
+				 wrapper.card = units[0];
 			} else if (card.holder.controller instanceof ControllerOponent) {
 				console.log("Oponent has played a medic, wait for him to chose which card to respawn")
 				// Wait for the oponent to choose which card to revive
