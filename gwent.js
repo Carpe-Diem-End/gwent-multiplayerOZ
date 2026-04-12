@@ -99,7 +99,7 @@ socket.onmessage = async (event) => {
       break;
 
     // Game - Oponent plays card
-    case "play":
+    case "play": {
       const card = player_op.hand.cards.find(
         (c) => c.filename === data.card.filename,
       );
@@ -129,6 +129,7 @@ socket.onmessage = async (event) => {
         await player_op.playScorch(card);
       else await player_op.playCardToRow(card, row);
       break;
+    }
 
     // Game - Oponent pass
     case "pass":
@@ -161,13 +162,15 @@ socket.onmessage = async (event) => {
         graveCards.map((card) => board.toRow(card, player_op.grave)),
       );
 
-    case "monstersAbility":
+    case "monstersAbility": {
       const player = game.players.find(p => p.tag === data.playerTag);
       const card = player.deck.findCardById(data.cardId);
       card.noRemove = true;
       setTimeout(() => {
         delete card.noRemove;
       }, 1200);
+      break;
+    }
   }
 };
 
