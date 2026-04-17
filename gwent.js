@@ -7,6 +7,9 @@ let amReady = false;
 let oponentReady = false;
 let playerId = null;
 
+// Turn lock / Mutex - prevents race conditions when playing multiple cards quickly
+let isPlayInProgress = false;
+
 const readyButtonElem = document.getElementById("start-game");
 const oponentReadyElem = document.getElementById("oponent-ready");
 const isOponentReadyElem = document.getElementById("oponent-ready");
@@ -281,6 +284,9 @@ class Player {
 
   // Sets up board for turn
   async startTurn() {
+    // Always reset play lock at start of turn
+    isPlayInProgress = false;
+    
     document.getElementById("stats-" + this.tag).classList.add("current-turn");
     if (this.leaderAvailable)
       this.elem_leader.children[1].classList.remove("hide");
@@ -292,8 +298,15 @@ class Player {
 
   // Passes the round and ends the turn
   passRound() {
-    this.setPassed(true);
-    this.endTurn();
+    if (isPlayInProgress) return;
+    isPlayInProgress = true;
+    
+    try {
+      this.setPassed(true);
+      this.endTurn();
+    } finally {
+      isPlayInProgress = false;
+    }
   }
 
   // Plays a scorch card
@@ -319,11 +332,18 @@ class Player {
 
   // Shows a preview of the card being played, plays it to the board and ends the turn
   async playCardAction(card, action) {
-    ui.showPreviewVisuals(card);
-    await sleep(1000);
-    ui.hidePreview(card);
-    await action();
-    this.endTurn();
+    if (isPlayInProgress) return;
+    isPlayInProgress = true;
+    
+    try {
+      ui.showPreviewVisuals(card);
+      await sleep(1000);
+      ui.hidePreview(card);
+      await action();
+      this.endTurn();
+    } finally {
+      isPlayInProgress = false;
+    }
   }
 
   // Handles end of turn visuals and behavior the notifies the game
@@ -359,12 +379,19 @@ class Player {
 
   // Use a leader's Activate ability, then disable the leader
   async activateLeader() {
-    ui.showPreviewVisuals(this.leader);
-    await sleep(1500);
-    ui.hidePreview(this.leader);
-    await this.leader.activated[0](this.leader, this);
-    this.disableLeader();
-    this.endTurn();
+    if (isPlayInProgress) return;
+    isPlayInProgress = true;
+    
+    try {
+      ui.showPreviewVisuals(this.leader);
+      await sleep(1500);
+      ui.hidePreview(this.leader);
+      await this.leader.activated[0](this.leader, this);
+      this.disableLeader();
+      this.endTurn();
+    } finally {
+      isPlayInProgress = false;
+    }
   }
 
   // Disable access to leader ability and toggles leader visuals to off state
