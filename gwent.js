@@ -104,7 +104,7 @@ socket.onmessage = async (event) => {
     // Game - Oponent plays card
     case "play": {
       const card = player_op.hand.cards.find(
-        (c) => c.filename === data.card.filename,
+        (c) => c.instanceId === data.card.instanceId,
       );
 
       const splitRowName = data.row.split("-");
@@ -1511,9 +1511,11 @@ class Game {
 }
 
 // Contains information and behavior of a Card
+let _cardIdCounter = 0;
+
 class Card {
   constructor(card_data, player) {
-    this.instanceId = 'card_' + Date.now() + '_' + Math.random().toString(36).substr(2,9);
+    this.instanceId = _cardIdCounter++;
     this.name = card_data.name;
     this.basePower = this.power = Number(card_data.strength);
     this.faction = card_data.deck;
